@@ -1,0 +1,60 @@
+  spring:
+    application:
+      name: jira-notion-sync
+    datasource:
+      url: jdbc:postgresql://localhost:5432/jira_notion_sync
+      username: Mishra
+      password:
+      driver-class-name: org.postgresql.Driver
+    jpa:
+      hibernate:
+        ddl-auto: validate
+      show-sql: false
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+    flyway:
+      enabled: true
+      locations: classpath:db/migration
+      baseline-on-migrate: true
+    data:
+      redis:
+        host: localhost
+        port: 6379
+    redis:
+      redisson:
+        config: |
+          singleServerConfig:
+            address: "redis://127.0.0.1:6379"
+    cache:
+      type: redis
+    docker:
+      compose:
+        enabled: false
+
+  server:
+    port: 8080
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info
+
+  app:
+    jira:
+      base-url: ${JIRA_BASE_URL}
+      email: ${JIRA_EMAIL}
+      api-token: ${JIRA_API_TOKEN}
+      webhook-secret: ${JIRA_WEBHOOK_SECRET}
+    notion:
+      api-token: ${NOTION_API_TOKEN}
+      api-version: "2022-06-28"
+      database-id: ${NOTION_DATABASE_ID}
+    sync:
+      polling-interval-ms: 60000
+      max-retry-attempts: 3
+      retry-delay-ms: 5000
+    public-url: ${APP_PUBLIC_URL:}
+    groq:
+      api-key: ${GROQ_API_KEY:}
