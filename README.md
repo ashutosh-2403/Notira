@@ -1,4 +1,3 @@
-
 # Notira 🔄
 ### Real-time Jira → Notion Sync Engine
 
@@ -47,7 +46,7 @@ Every Notion page has a clean, consistent structure — automatically.
 
 Every synced Jira ticket creates a Notion page like this:
 
-
+```
 💡 AI Summary — auto-generated from ticket description
 ─────────────────────────────
 📋 Details
@@ -74,13 +73,13 @@ Every synced Jira ticket creates a Notion page like this:
       📝 Description updated
       Before: ...
       After:  ...
-
+```
 
 ---
 
 ## 🏗️ Architecture
 
-
+```
 ┌─────────────────┐         ┌──────────────────────┐         ┌──────────────────┐
 │   Jira Cloud    │──webhook▶│   Spring Boot App    │──API──▶│   Notion API     │
 │                 │         │                      │         │                  │
@@ -97,7 +96,7 @@ Every synced Jira ticket creates a Notion page like this:
                             │  sync_events          │
                             │  sync_errors          │
                             └──────────────────────┘
-
+```
 
 **Tech Stack:**
 - **Java 21** + **Spring Boot 3.5** — core application
@@ -120,20 +119,20 @@ Every synced Jira ticket creates a Notion page like this:
 
 ### 1. Clone the repo
 
-bash
+```bash
 git clone https://github.com/ashutosh-2403/notira
 cd notira
-
+```
 
 ### 2. Configure environment
 
-bash
+```bash
 cp .env.example .env
+```
 
+Edit `.env` with your credentials:
 
-Edit '.env' with your credentials:
-
-env
+```env
 # Jira
 JIRA_BASE_URL=https://yourcompany.atlassian.net
 JIRA_EMAIL=your@email.com
@@ -145,15 +144,15 @@ JIRA_WEBHOOK_SECRET=any-random-string
 # Notion
 NOTION_API_TOKEN=your-notion-integration-token
 NOTION_DATABASE_ID=your-notion-database-id
-
+```
 
 ### 3. Run with Docker
 
-bash
+```bash
 docker compose up -d
+```
 
-
-That's it. The app starts on 'http://localhost:8080'.
+That's it. The app starts on `http://localhost:8080`.
 
 ---
 
@@ -163,45 +162,47 @@ That's it. The app starts on 'http://localhost:8080'.
 
 1. Go to [https://id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens)
 2. Click **Create API token**
-3. Copy the token into your '.env'
+3. Copy the token into your `.env`
 
 ### Step 2 — Create a Notion Integration
 
 1. Go to [https://www.notion.so/my-integrations](https://www.notion.so/my-integrations)
 2. Click **New integration** → name it `notira`
-3. Copy the **Internal Integration Secret** into your '.env'
+3. Copy the **Internal Integration Secret** into your `.env`
 
 ### Step 3 — Create a Notion Database
 
 1. In Notion, create a new **full-page database** (Empty database)
-2. Open it → click `...` top right → **Connections** → add 'notira'
+2. Open it → click `...` top right → **Connections** → add `notira`
 3. Copy the database ID from the URL:
-   
+   ```
    https://notion.so/YOUR-DATABASE-ID?v=...
-   
-4. Paste into your '.env' as 'NOTION_DATABASE_ID'
+   ```
+4. Paste into your `.env` as `NOTION_DATABASE_ID`
 
 ### Step 4 — Register Jira Webhook
 
-1. Go to: 'https://yourcompany.atlassian.net/plugins/servlet/webhooks'
+1. Go to: `https://yourcompany.atlassian.net/plugins/servlet/webhooks`
 2. Click **Create a WebHook**
-3. Set URL to: 'https://your-server.com/api/webhooks/jira'
+3. Set URL to: `https://your-server.com/api/webhooks/jira`
 4. Check all **Issue** events: created, updated, deleted
 5. Check **Comment** events: created
 6. Save
 
 ### Step 5 — Expose locally (dev only)
 
-bash
+```bash
 ngrok http 8080
 # Use the https://xxx.ngrok-free.app URL as your webhook URL
+```
+
 ---
 
 ## 🔧 Development Setup
 
 ### Running locally without Docker
 
-bash
+```bash
 # Start only PostgreSQL and Redis via Docker
 docker compose up -d postgres redis
 
@@ -213,10 +214,11 @@ JIRA_WEBHOOK_SECRET=your-secret \
 NOTION_API_TOKEN=your-notion-token \
 NOTION_DATABASE_ID=your-database-id \
 ./mvnw spring-boot:run
-
+```
 
 ### Project structure
 
+```
 src/main/java/com/ashutosh/jiranotionsync/
 ├── controller/
 │   └── JiraWebhookController.java     # Receives Jira webhooks
@@ -234,7 +236,7 @@ src/main/java/com/ashutosh/jiranotionsync/
 └── dto/
     ├── JiraWebhookPayload.java        # Jira webhook DTO
     └── NotionPageRequest.java         # Notion API DTO
-
+```
 
 ---
 
@@ -242,7 +244,7 @@ src/main/java/com/ashutosh/jiranotionsync/
 
 ### Deploy on any VPS (Ubuntu)
 
-bash
+```bash
 # Clone and configure
 git clone https://github.com/ashutosh-2403/notira
 cd notira
@@ -254,9 +256,9 @@ docker compose up -d --build
 
 # Check logs
 docker compose logs -f app
+```
 
-
-Point your Jira webhook to 'https://your-server-ip:8080/api/webhooks/jira'.
+Point your Jira webhook to `https://your-server-ip:8080/api/webhooks/jira`.
 
 ---
 
@@ -289,13 +291,13 @@ Point your Jira webhook to 'https://your-server-ip:8080/api/webhooks/jira'.
 
 Pull requests are welcome! For major changes please open an issue first.
 
-bash
+```bash
 # Fork the repo
 git checkout -b feature/your-feature
 git commit -m "Add your feature"
 git push origin feature/your-feature
 # Open a Pull Request
-
+```
 
 ---
 
