@@ -312,6 +312,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 **Ashutosh Mishra**
 - GitHub: [@ashutosh-2403](https://github.com/ashutosh-2403)
 - LinkedIn: [ashutoshmishra2403](https://linkedin.com/in/ashutoshmishra2403)
+- Gmail: ashutoshmishra2403@gmail.com
 
 ---
 
