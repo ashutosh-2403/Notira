@@ -2,6 +2,8 @@
 ### Real-time Jira → Notion Sync Engine
 
 > **Jira tracks your work. Notion documents it. Notira syncs them automatically — so your sprint documentation writes itself.**
+> 🌐 **[Live Landing Page →](https://ashutosh-2403.github.io/Notira/)**
+
 
 [![Java](https://img.shields.io/badge/Java-21-orange)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-green)](https://spring.io/projects/spring-boot)
@@ -9,6 +11,7 @@
 [![Redis](https://img.shields.io/badge/Redis-7-red)](https://redis.io/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![Live](https://img.shields.io/badge/Landing%20Page-Live-brightgreen)](https://ashutosh-2403.github.io/Notira/)
 
 ---
 
