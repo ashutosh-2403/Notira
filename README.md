@@ -1,7 +1,7 @@
 # Notira 🔄
 ### Real-time Jira → Notion Sync Engine
 
-> **Jira tracks your work. Notion documents it. Notira syncs them automatically — so your sprint documentation writes itself.**
+> **Jira tracks your work. Notion documents it. Notira syncs them automatically  so your sprint documentation writes itself.**  
 > 🌐 **[Live Landing Page →](https://ashutosh-2403.github.io/Notira/)**
 
 
