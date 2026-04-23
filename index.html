@@ -1,402 +1,568 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notira — Jira to Notion, Automatically</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        :root{--ink:#0a0a0a;--paper:#f5f0e8;--cream:#ede8dc;--muted:#6b6560;--accent:#c8001a;--accent2:#e8f000;--mono:'DM Mono',monospace;--serif:'Playfair Display',serif;--sans:'DM Sans',sans-serif}
-        html{scroll-behavior:smooth}
-        body{background:var(--paper);color:var(--ink);font-family:var(--sans);overflow-x:hidden}
-        .masthead{border-bottom:3px solid var(--ink);padding:0 48px;position:sticky;top:0;z-index:100;background:var(--paper)}
-        .masthead-top{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--ink)}
-        .masthead-date{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
-        .masthead-logo{font-family:var(--serif);font-size:36px;font-weight:900;letter-spacing:-1px;color:var(--ink);text-decoration:none;line-height:1}
-        .masthead-logo sup{font-size:12px;font-family:var(--mono);font-weight:400;color:var(--accent);letter-spacing:1px;vertical-align:super;text-transform:uppercase}
-        .masthead-tagline{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.5px;text-align:right}
-        .masthead-nav{display:flex;align-items:center;gap:0;padding:10px 0}
-        .masthead-nav a{font-family:var(--mono);font-size:11px;color:var(--ink);text-decoration:none;letter-spacing:1.5px;text-transform:uppercase;padding:6px 20px;border-right:1px solid var(--ink);transition:all .15s;font-weight:500}
-        .masthead-nav a:first-child{border-left:1px solid var(--ink)}
-        .masthead-nav a:hover{background:var(--ink);color:var(--paper)}
-        .nav-gh{margin-left:auto;background:var(--accent)!important;color:var(--paper)!important;border-color:var(--accent)!important;padding:6px 24px!important}
-        .nav-gh:hover{background:#a0001a!important;border-color:#a0001a!important}
-        .hero{padding:0 48px;border-bottom:3px solid var(--ink)}
-        .hero-kicker{display:flex;align-items:center;gap:16px;padding:20px 0 16px;border-bottom:1px solid var(--ink);margin-bottom:32px}
-        .kicker-label{background:var(--accent);color:white;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:2px;text-transform:uppercase;padding:4px 12px}
-        .kicker-text{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.5px}
-        .hero-grid{display:grid;grid-template-columns:1fr 380px;gap:0;border-top:2px solid var(--ink)}
-        .hero-left{padding:40px 48px 40px 0;border-right:1px solid var(--ink)}
-        .hero-eyebrow{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
-        .hero-headline{font-family:var(--serif);font-size:clamp(52px,7vw,88px);font-weight:900;line-height:.95;letter-spacing:-3px;margin-bottom:32px;color:var(--ink)}
-        .hero-headline em{font-style:italic;color:var(--accent)}
-        .hero-rule{width:60px;height:3px;background:var(--ink);margin-bottom:24px}
-        .hero-deck{font-family:var(--serif);font-size:20px;font-weight:400;line-height:1.5;color:var(--ink);max-width:520px;margin-bottom:32px}
-        .hero-deck strong{font-weight:700}
-        .hero-byline{display:flex;align-items:center;gap:16px;padding-top:24px;border-top:1px solid var(--ink);margin-top:24px}
-        .byline-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
-        .byline-name{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink)}
-        .hero-actions{display:flex;gap:0;margin-top:32px}
-        .btn-ink{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--paper);padding:14px 28px;font-family:var(--mono);font-size:12px;font-weight:500;text-decoration:none;letter-spacing:1px;text-transform:uppercase;transition:all .15s;border:2px solid var(--ink)}
-        .btn-ink:hover{background:var(--accent);border-color:var(--accent)}
-        .btn-outline{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--ink);padding:14px 28px;font-family:var(--mono);font-size:12px;font-weight:500;text-decoration:none;letter-spacing:1px;text-transform:uppercase;transition:all .15s;border:2px solid var(--ink);border-left:none}
-        .btn-outline:hover{background:var(--cream)}
-        .hero-right{padding:32px 0 32px 40px}
-        .demo-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-        .demo-live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1.5s step-end infinite}
-        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-        .ticket{border:2px solid var(--ink);background:white;margin-bottom:16px}
-        .ticket-header{background:var(--ink);padding:8px 14px;display:flex;align-items:center;justify-content:space-between}
-        .ticket-source{font-family:var(--mono);font-size:10px;color:var(--paper);letter-spacing:1px;text-transform:uppercase;opacity:.7}
-        .ticket-key{font-family:var(--mono);font-size:11px;color:#00d4ff;font-weight:500}
-        .ticket-body{padding:14px}
-        .ticket-title{font-family:var(--serif);font-size:14px;font-weight:700;line-height:1.3;margin-bottom:10px;color:var(--ink)}
-        .ticket-tags{display:flex;gap:6px;flex-wrap:wrap}
-        .t-tag{font-family:var(--mono);font-size:9px;padding:3px 8px;letter-spacing:.5px;text-transform:uppercase;font-weight:500}
-        .t-red{border:1px solid var(--accent);color:var(--accent)}
-        .t-green{border:1px solid #1a7a1a;color:#1a7a1a}
-        .t-blue{border:1px solid #1a4a8a;color:#1a4a8a}
-        .sync-row{display:flex;align-items:center;gap:12px;padding:10px 0;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px}
-        .sync-line{flex:1;height:1px;background:var(--ink);opacity:.2}
-        .sync-pill{background:var(--ink);color:var(--paper);padding:4px 12px;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;animation:sp 2s infinite}
-        @keyframes sp{0%,100%{opacity:1}50%{opacity:.6}}
-        .notion-card{border:2px solid var(--ink);background:var(--cream)}
-        .nc-header{background:var(--ink);padding:8px 14px}
-        .nc-src{font-family:var(--mono);font-size:10px;color:var(--paper);letter-spacing:1px;text-transform:uppercase;opacity:.7}
-        .nc-title{font-family:var(--serif);font-size:13px;font-weight:700;color:var(--ink);padding:12px 14px 8px;border-bottom:1px solid rgba(10,10,10,.15);line-height:1.3}
-        .nc-row{display:flex;padding:6px 14px;border-bottom:1px solid rgba(10,10,10,.08);align-items:baseline;gap:12px}
-        .nc-lbl{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;min-width:70px;flex-shrink:0}
-        .nc-val{font-family:var(--mono);font-size:10px;color:var(--ink);font-weight:500}
-        .nc-val.red{color:var(--accent)}
-        .nc-tracker{padding:8px 14px;font-family:var(--mono);font-size:9px;color:var(--muted);display:flex;align-items:center;gap:4px;flex-wrap:wrap;border-bottom:1px solid rgba(10,10,10,.08)}
-        .n-step{color:var(--muted)}.n-step.active{color:var(--ink);font-weight:500}.n-arrow{opacity:.3}
-        .nc-ai{background:rgba(200,0,26,.04);border-left:3px solid var(--accent);padding:8px 14px;font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.5}
-        .nc-history{padding:6px 14px;font-family:var(--mono);font-size:9px;color:var(--muted);border-top:1px solid rgba(10,10,10,.1)}
-        .stats-band{background:var(--ink);color:var(--paper);padding:28px 48px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--ink)}
-        .stat-item{text-align:center;flex:1;border-right:1px solid rgba(255,255,255,.1);padding:0 24px}
-        .stat-item:last-child{border-right:none}
-        .stat-num{font-family:var(--serif);font-size:48px;font-weight:900;color:var(--accent2);line-height:1;letter-spacing:-2px;margin-bottom:4px}
-        .stat-lbl{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase}
-        .sw{padding:80px 48px;border-bottom:1px solid var(--ink)}
-        .sw.ruled{border-bottom:3px solid var(--ink)}
-        .col-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid var(--ink);display:flex;align-items:center;gap:10px}
-        .col-num{font-size:10px;color:var(--accent)}
-        .feat-hdr{display:grid;grid-template-columns:1fr 2fr;gap:0;border-bottom:1px solid var(--ink);margin-bottom:48px;padding-bottom:32px}
-        .big-head{font-family:var(--serif);font-size:clamp(36px,5vw,64px);font-weight:900;letter-spacing:-2px;line-height:1}
-        .feat-intro{padding-left:48px}
-        .feat-intro p{font-family:var(--serif);font-size:18px;line-height:1.6;margin-bottom:16px}
-        .feat-intro p:last-child{margin:0}
-        .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
-        .feat-col{padding:0 32px;border-right:1px solid var(--ink)}
-        .feat-col:first-child{padding-left:0}
-        .feat-col:last-child{border-right:none}
-        .feat-item{padding:24px 0;border-bottom:1px solid rgba(10,10,10,.12)}
-        .feat-item:last-child{border-bottom:none}
-        .feat-num{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px;margin-bottom:8px}
-        .feat-title{font-family:var(--serif);font-size:16px;font-weight:700;margin-bottom:8px;line-height:1.2}
-        .feat-body{font-family:var(--sans);font-size:13px;color:var(--muted);line-height:1.6;font-weight:300}
-        .cmp-hdr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;border-bottom:2px solid var(--ink)}
-        .cmp-ch{padding:16px 24px;font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;font-weight:500;border-right:1px solid var(--ink)}
-        .cmp-ch:last-child{border-right:none}
-        .cmp-ch.ours{background:var(--ink);color:var(--paper)}
-        .cmp-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;border-bottom:1px solid rgba(10,10,10,.15)}
-        .cmp-row:hover{background:rgba(10,10,10,.02)}
-        .cmp-cell{padding:14px 24px;font-family:var(--mono);font-size:12px;border-right:1px solid rgba(10,10,10,.1);display:flex;align-items:center}
-        .cmp-cell:last-child{border-right:none}
-        .cmp-cell.ours{background:rgba(10,10,10,.02)}
-        .cmp-cell.feat{color:var(--ink);font-size:13px}
-        .yes{color:#1a6a1a;font-size:16px;font-weight:700}
-        .no{color:var(--accent);font-size:16px}
-        .part{color:#8a6000;font-size:13px}
-        .how-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:2px solid var(--ink);margin-top:48px}
-        .how-step{padding:32px 24px;border-right:1px solid var(--ink)}
-        .how-step:last-child{border-right:none}
-        .how-num{font-family:var(--serif);font-size:64px;font-weight:900;color:var(--cream);line-height:1;margin-bottom:16px;-webkit-text-stroke:2px var(--ink)}
-        .how-title{font-family:var(--serif);font-size:16px;font-weight:700;margin-bottom:8px;line-height:1.2}
-        .how-body{font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.6;font-weight:300}
-        .qs-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--ink);margin-top:48px}
-        .qs-left{padding:40px;border-right:2px solid var(--ink)}
-        .qs-right{padding:40px;overflow:hidden;min-width:0}
-        .qs-title{font-family:var(--serif);font-size:28px;font-weight:900;margin-bottom:24px;letter-spacing:-1px}
-        .code-pre{background:var(--ink);color:var(--paper);padding:24px;font-family:var(--mono);font-size:12px;line-height:2;overflow-x:auto;white-space:pre}
-        .c-cm{color:rgba(255,255,255,.2)}
-        .c-cmd{color:var(--paper)}
-        .c-key{color:#00d4ff}
-        .c-val{color:#00e676}
-        .env-rows{margin-top:24px}
-        .env-row{display:flex;align-items:flex-start;gap:16px;padding:14px 0;border-bottom:1px solid rgba(10,10,10,.1)}
-        .env-row:last-child{border-bottom:none}
-        .env-key{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:500;min-width:160px;max-width:160px;flex-shrink:0;word-break:break-all}
-        .env-info{font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.5;font-weight:300;overflow:hidden;word-break:break-word;min-width:0}
-        .tech-row{display:flex;flex-wrap:wrap;gap:0;border:2px solid var(--ink);margin-top:48px;overflow:hidden}
-        .tech-item{padding:16px 24px;border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);font-family:var(--mono);font-size:12px;color:var(--ink);display:flex;align-items:center;gap:10px;transition:all .15s;cursor:default}
-        .tech-item:hover{background:var(--ink);color:var(--paper)}
-        .tech-item::before{content:'▸';color:var(--accent);font-size:10px}
-        footer{background:var(--ink);color:var(--paper);padding:48px;border-top:3px solid var(--ink)}
-        .ft-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:48px;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:32px}
-        .ft-logo{font-family:var(--serif);font-size:32px;font-weight:900;color:var(--paper);margin-bottom:12px}
-        .ft-logo span{color:var(--accent)}
-        .ft-desc{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.4);line-height:1.7;font-weight:300}
-        .ft-col-title{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
-        .ft-links{list-style:none}
-        .ft-links li{margin-bottom:10px}
-        .ft-links a{font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.6);text-decoration:none;transition:color .15s}
-        .ft-links a:hover{color:var(--paper)}
-        .ft-bottom{display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.25);letter-spacing:.5px}
-        .appear{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}
-        .appear.in{opacity:1;transform:none}
-        ::-webkit-scrollbar{width:4px}
-        ::-webkit-scrollbar-track{background:var(--paper)}
-        ::-webkit-scrollbar-thumb{background:var(--ink)}
-    </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Notira — Jira to Notion, Automatically</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#F2FBFA;color:#1C2B3A;font-size:14px}
+:root{
+  --teal:#00BFA5;--teal-d:#009B8A;--teal-bg:#E8F8F5;--teal-light:#D0F0EA;
+  --peach:#FDEBD0;--peach-t:#7A4A10;
+  --purple:#7B5CF6;--purple-bg:#EEE9FF;--purple-t:#5B3FC4;
+  --white:#fff;--bg:#F2FBFA;
+  --text:#1C2B3A;--muted:#8A9BB0;--light:#B8C8D8;
+  --border:#E2EEF0;--border-s:#D0E6E2;
+  --orange:#F97316;--pink:#EC4899;--blue:#3B82F6;
+  --r:12px;--rpill:999px;
+  --sb:210px;
+}
+
+/* ANNOUNCE BAR */
+.announce{background:var(--peach);padding:10px 16px;text-align:center;font-size:12px;color:var(--peach-t);border-bottom:1px solid #F5D5A8;line-height:1.5}
+.announce a{color:#C05010;font-weight:700;text-decoration:underline}
+
+/* TOPBAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.tb-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.tb-logo-icon{width:30px;height:30px;background:var(--teal);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tb-logo-icon svg{width:17px;height:17px;fill:white}
+.tb-logo span{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.4px}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-lifecycle{display:flex;align-items:center;gap:5px;color:var(--teal-d);font-size:12px;font-weight:500;cursor:pointer;text-decoration:none}
+.tb-lifecycle svg{width:16px;height:16px;stroke:var(--teal-d);fill:none;stroke-width:1.8}
+.tb-demo{padding:7px 14px;border-radius:var(--rpill);font-size:12px;font-weight:600;border:1.5px solid var(--text);color:var(--text);background:var(--white);cursor:pointer;text-decoration:none;white-space:nowrap}
+.tb-icon-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.tb-icon-btn svg{width:15px;height:15px;stroke:var(--muted);fill:none;stroke-width:1.8}
+.tb-hide-mobile{display:flex;align-items:center;gap:8px}
+
+/* HAMBURGER */
+.hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;background:none;border:none}
+.hamburger span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 84px)}
+
+/* SIDEBAR */
+.sidebar{width:var(--sb);background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto}
+.sb-nav{padding:10px 0;flex:1}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;color:var(--muted);cursor:pointer;border-left:3px solid transparent;text-decoration:none;transition:background .15s,color .15s}
+.sb-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.5;flex-shrink:0}
+.sb-item:hover{background:#F5FFFE;color:var(--teal-d)}
+.sb-item.active{color:var(--teal-d);font-weight:600;border-left:3px solid var(--teal);background:var(--teal-bg)}
+.sb-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:var(--rpill);margin-left:auto;line-height:1.5}
+.sb-badge.new{background:var(--purple-bg);color:var(--purple-t)}
+.sb-badge.live{background:#DCFCE7;color:#166534}
+.sb-bottom{padding:10px 12px;border-top:1px solid var(--border)}
+.sb-hint{background:#FFF8F0;border:1px solid #FFD9B5;border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.sb-hint p{font-size:11px;color:#9A5C1A;line-height:1.5;margin-bottom:6px}
+.sb-upgrade{width:100%;background:var(--teal);color:white;border:none;border-radius:var(--rpill);padding:7px 0;font-size:12px;font-weight:700;cursor:pointer}
+.sb-trial{font-size:11px;color:var(--muted);text-align:center;margin-top:6px}
+.sb-trial strong{color:var(--text)}
+
+/* MAIN */
+.main{flex:1;overflow:hidden;min-width:0}
+
+/* HERO BANNER */
+.hero-banner{background:var(--teal-bg);border-bottom:1px solid var(--teal-light);padding:22px 24px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.hb-wave{font-size:22px;margin-bottom:4px}
+.hb-welcome{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.hb-title{font-size:22px;font-weight:700;color:var(--text);line-height:1.25}
+.hb-sub{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;max-width:280px}
+.hb-progress{margin-top:14px}
+.hb-prog-label{font-size:12px;color:var(--muted);margin-bottom:6px}
+.hb-prog-bar{height:5px;background:var(--teal-light);border-radius:var(--rpill);overflow:hidden}
+.hb-prog-fill{height:100%;width:0%;background:var(--teal);border-radius:var(--rpill)}
+.hb-steps{display:flex;flex-direction:column;gap:8px}
+.hb-step{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--white);border-radius:8px;border:1px solid var(--border)}
+.hb-step.active{border:1.5px solid var(--teal-d)}
+.hb-step-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border-s);flex-shrink:0;margin-top:2px}
+.hb-step.active .hb-step-radio{border-color:var(--teal-d)}
+.hb-step-body{flex:1}
+.hb-step-title{font-size:12px;font-weight:600;color:var(--text)}
+.hb-step-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.hb-step-btn{background:var(--text);color:white;border:none;border-radius:var(--rpill);padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;margin-top:1px;text-decoration:none}
+
+/* CONTENT */
+.content{padding:18px 20px}
+
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.section-title{font-size:18px;font-weight:700;color:var(--text)}
+.section-sub{font-size:12px;font-weight:600;color:var(--text);margin-bottom:12px}
+.report-btn{font-size:12px;border:1px solid var(--border);background:var(--white);border-radius:var(--rpill);padding:6px 14px;cursor:pointer;color:var(--text);font-weight:500;white-space:nowrap}
+
+.hl-tabs{display:flex;gap:6px;margin-bottom:12px}
+.hl-tab{font-size:11px;font-weight:600;padding:5px 14px;border-radius:var(--rpill);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;background:var(--white)}
+.hl-tab.active{background:var(--text);color:white;border-color:var(--text)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between}
+.stat-label{font-size:11px;font-weight:600;margin-bottom:4px}
+.stat-label.orange{color:var(--orange)}
+.stat-label.pink{color:var(--pink)}
+.stat-label.blue{color:var(--blue)}
+.stat-label.teal{color:var(--teal-d)}
+.stat-val{font-size:22px;font-weight:700;color:var(--text)}
+.stat-icon{font-size:24px;flex-shrink:0}
+
+/* PROMO */
+.promo-banner{background:linear-gradient(135deg,#7B5CF6,#9B7FF6);border-radius:10px;padding:18px 22px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pb-date{font-size:11px;color:rgba(255,255,255,.75);margin-bottom:4px}
+.pb-title{font-size:15px;font-weight:700;color:white;line-height:1.3}
+.pb-btn{background:white;color:var(--purple-t);border:none;border-radius:var(--rpill);padding:9px 18px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+
+/* 2-COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-hdr-title{font-size:13px;font-weight:600;color:var(--text)}
+.card-hdr-link{font-size:12px;color:var(--teal-d);cursor:pointer;font-weight:500}
+.card-hdr-live{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--teal-d);font-weight:600}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:blink 2s infinite;flex-shrink:0}
+
+/* TICKETS */
+.ticket{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.ticket:last-child{margin-bottom:0}
+.t-key{font-size:10px;font-weight:700;color:var(--teal-d);font-family:monospace;margin-bottom:3px}
+.t-name{font-size:12px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:6px}
+.t-tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 8px;border-radius:var(--rpill);font-weight:500}
+.tag-r{background:#FFF3E0;color:#B45309}
+.tag-p{background:#E8F5E9;color:#166534}
+.tag-d{background:#F1F5F9;color:#475569}
+.tag-t{background:var(--teal-bg);color:var(--teal-d)}
+.tag-b{background:#FEF2F2;color:#991B1B}
+
+/* SYNC LOG */
+.sync-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:.5px solid var(--border);font-size:12px}
+.sync-row:last-child{border-bottom:none}
+.s-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.s-dot.live{background:var(--teal)}
+.s-dot.done{background:#CBD5E0}
+.s-key{font-family:monospace;font-size:10px;font-weight:700;color:var(--teal-d);min-width:64px}
+.s-label{flex:1;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-time{font-size:10px;color:var(--light)}
+
+/* FEATURES */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.feat{display:flex;align-items:flex-start;gap:9px;background:var(--bg);border-radius:8px;padding:10px 12px}
+.feat-ico{width:28px;height:28px;background:var(--teal-bg);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.feat-ico svg{width:14px;height:14px;stroke:var(--teal-d);fill:none;stroke-width:2}
+.feat-t{font-size:12px;font-weight:600;color:var(--text)}
+.feat-d{font-size:11px;color:var(--muted);line-height:1.4;margin-top:2px}
+.new-pill{background:var(--purple-bg);color:var(--purple-t);font-size:9px;font-weight:700;padding:1px 6px;border-radius:var(--rpill);margin-left:4px;vertical-align:middle}
+
+/* STEPS */
+.steps-col{display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:10px;padding:7px 0;position:relative}
+.step:not(:last-child)::after{content:'';position:absolute;left:11px;top:26px;bottom:-2px;width:1.5px;background:var(--teal-light)}
+.s-num{width:24px;height:24px;background:var(--teal);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;z-index:1;position:relative}
+.s-num.done{background:#166534}
+.s-body{flex:1;padding-top:2px}
+.s-title{font-size:12px;font-weight:600;color:var(--text)}
+.s-code{background:#1A2B3C;color:#63DDD0;font-family:monospace;font-size:10px;padding:3px 9px;border-radius:5px;margin-top:4px;display:inline-block;word-break:break-all}
+.s-sub{font-size:11px;color:var(--muted)}
+
+/* COMPARE */
+.cmp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cmp-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.cmp-card.winner{border:1.5px solid var(--teal-d);background:var(--teal-bg)}
+.cmp-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cmp-crown{background:var(--teal);color:white;font-size:9px;font-weight:700;padding:1px 7px;border-radius:var(--rpill)}
+.cmp-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:.5px solid var(--border);font-size:11px}
+.cmp-row:last-child{border:none}
+.cmp-k{color:var(--muted)}
+.cmp-v{font-weight:600;color:var(--text)}
+.cmp-v.y{color:var(--teal-d)}
+.cmp-v.n{color:var(--light)}
+.cmp-v.fr{color:var(--teal-d)}
+.cmp-v.pd{color:var(--orange)}
+
+/* STACK */
+.stack-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:var(--bg);border:1px solid var(--border);border-radius:var(--rpill);padding:4px 11px;font-size:11px;color:var(--muted);font-weight:500}
+
+/* FOOTER */
+.footer{background:var(--white);border-top:1px solid var(--border);padding:20px;text-align:center}
+.footer p{font-size:12px;color:var(--muted)}
+.footer a{color:var(--teal-d);text-decoration:none;font-weight:600}
+
+/* MOBILE DRAWER OVERLAY */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:150}
+.overlay.open{display:block}
+
+/* ANIMATIONS */
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ================================
+   RESPONSIVE BREAKPOINTS
+================================ */
+
+/* Tablet: hide sidebar, show hamburger */
+@media(max-width:900px){
+  :root{--sb:220px}
+  .sidebar{
+    position:fixed;left:calc(-1 * var(--sb));top:54px;
+    height:calc(100vh - 54px);z-index:160;
+    transition:left .25s ease;box-shadow:none;
+  }
+  .sidebar.open{left:0;box-shadow:4px 0 20px rgba(0,0,0,.12)}
+  .hamburger{display:flex}
+  .tb-hide-mobile{display:none}
+  .tb-demo{display:none}
+  .hero-banner{grid-template-columns:1fr;gap:12px}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .two-col{grid-template-columns:1fr}
+  .cmp-grid{grid-template-columns:1fr}
+  .feat-grid{grid-template-columns:1fr}
+}
+
+/* Mobile: tighter spacing */
+@media(max-width:600px){
+  .content{padding:14px}
+  .hero-banner{padding:16px}
+  .hb-title{font-size:18px}
+  .section-title{font-size:16px}
+  .stats-row{grid-template-columns:1fr 1fr;gap:8px}
+  .stat-val{font-size:18px}
+  .promo-banner{flex-direction:column;align-items:flex-start;gap:10px}
+  .pb-btn{align-self:flex-start}
+  .topbar{padding:0 14px}
+  .tb-logo span{font-size:15px}
+  .announce{font-size:11px;padding:8px 12px}
+  .hb-step-btn{padding:6px 10px;font-size:10px}
+  .two-col{gap:10px}
+}
+
+@media(max-width:380px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .feat-grid{grid-template-columns:1fr}
+}
+</style>
 </head>
 <body>
 
-<header class="masthead">
-    <div class="masthead-top">
-        <div class="masthead-date" id="ld">—</div>
-        <a href="#" class="masthead-logo">Notira<sup>™</sup></a>
-        <div class="masthead-tagline">Jira to Notion · Automated · Open Source</div>
-    </div>
-    <nav class="masthead-nav">
-        <a href="#features">Features</a>
-        <a href="#how">How It Works</a>
-        <a href="#compare">Compare</a>
-        <a href="#quickstart">Quick Start</a>
-        <a href="https://github.com/ashutosh-2403/notira" target="_blank" class="nav-gh">↗ GitHub</a>
-    </nav>
-</header>
-
-<section class="hero">
-    <div class="hero-kicker">
-        <span class="kicker-label">Breaking</span>
-        <span class="kicker-text">Your sprint documentation no longer requires a human — open source, self-hosted, free forever</span>
-    </div>
-    <div class="hero-grid">
-        <div class="hero-left">
-            <div class="hero-eyebrow">Vol. I, No. 1 — The Engineering Automation Times</div>
-            <h1 class="hero-headline">Jira<br>tracks<br>it. Notion<br><em>owns</em> it.</h1>
-            <div class="hero-rule"></div>
-            <p class="hero-deck"><strong>Notira</strong> listens to every Jira event and automatically creates, updates, and documents your tickets in Notion — in real time, without touching anything. No Zapier. No monthly bill. Your server. Your data.</p>
-            <div class="hero-actions">
-                <a href="https://github.com/ashutosh-2403/notira" target="_blank" class="btn-ink">↗ View on GitHub</a>
-                <a href="#quickstart" class="btn-outline">$ Quick Start</a>
-            </div>
-            <div class="hero-byline">
-                <div>
-                    <div class="byline-label">Built by</div>
-                    <div class="byline-name">Ashutosh Mishra · PDEU '26</div>
-                </div>
-                <div style="width:1px;height:36px;background:var(--ink);opacity:.2"></div>
-                <div>
-                    <div class="byline-label">Stack</div>
-                    <div class="byline-name" style="font-family:var(--mono);font-size:12px;font-weight:400">Java 21 · Spring Boot · PostgreSQL · Redis · Docker</div>
-                </div>
-            </div>
-        </div>
-        <div class="hero-right">
-            <div class="demo-label"><span class="demo-live"></span>Live sync — SCRUM-30</div>
-            <div class="ticket">
-                <div class="ticket-header">
-                    <span class="ticket-source">⬡ Jira Cloud</span>
-                    <span class="ticket-key">SCRUM-30</span>
-                </div>
-                <div class="ticket-body">
-                    <div class="ticket-title">Implement JWT Authentication for User Login</div>
-                    <div class="ticket-tags">
-                        <span class="t-tag t-red">↑ Highest</span>
-                        <span class="t-tag t-green">● In Review</span>
-                        <span class="t-tag t-blue">◈ Task</span>
-                    </div>
-                </div>
-            </div>
-            <div class="sync-row">
-                <div class="sync-line"></div>
-                <div class="sync-pill">⚡ Syncing via webhook</div>
-                <div class="sync-line"></div>
-            </div>
-            <div class="notion-card">
-                <div class="nc-header"><span class="nc-src">📄 Notion Page</span></div>
-                <div class="nc-title">SCRUM-30 — Implement JWT Authentication for User Login</div>
-                <div class="nc-ai">💡 Task involves building JWT-based auth system with 24h token expiry and refresh token support via Redis...</div>
-                <div class="nc-row"><span class="nc-lbl">Jira Key</span><span class="nc-val">SCRUM-30</span></div>
-                <div class="nc-row"><span class="nc-lbl">Status</span><span class="nc-val red">In Review</span></div>
-                <div class="nc-row"><span class="nc-lbl">Assignee</span><span class="nc-val">ASHUTOSH Mishra</span></div>
-                <div class="nc-tracker">
-                    <span class="n-step">⚪ Backlog</span><span class="n-arrow"> → </span>
-                    <span class="n-step">⚪ In Progress</span><span class="n-arrow"> → </span>
-                    <span class="n-step active">🟠 In Review</span><span class="n-arrow"> → </span>
-                    <span class="n-step">⚪ Done</span>
-                </div>
-                <div class="nc-history">🕐 Apr 05, 2026 01:39 · ASHUTOSH Mishra · Status: To Do → In Review</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<div class="stats-band">
-    <div class="stat-item"><div class="stat-num">5+</div><div class="stat-lbl">Event Types</div></div>
-    <div class="stat-item"><div class="stat-num">0ms</div><div class="stat-lbl">Manual Work</div></div>
-    <div class="stat-item"><div class="stat-num">100%</div><div class="stat-lbl">Webhook Coverage</div></div>
-    <div class="stat-item"><div class="stat-num">$0</div><div class="stat-lbl">Forever Free</div></div>
-    <div class="stat-item"><div class="stat-num">1</div><div class="stat-lbl">Command to Run</div></div>
+<div class="announce">
+  Notira is open source &amp; self-hosted. Star it on GitHub — <a href="https://github.com/ashutosh-2403/notira" target="_blank">ashutosh-2403/notira</a> &nbsp;·&nbsp; <strong>No signup. No monthly bill. Free forever.</strong>
 </div>
 
-<section class="sw ruled" id="features">
-    <div class="col-label appear"><span class="col-num">§ 01</span> Features</div>
-    <div class="feat-hdr appear">
-        <div class="big-head" style="border-right:1px solid var(--ink);padding-right:48px">Every<br>action.<br>Synced.</div>
-        <div class="feat-intro">
-            <p>The moment anything changes in Jira — Notira reflects it in Notion. Instantly. Automatically. Without touching anything.</p>
-            <p>Notira treats your Notion page as a <strong>living document</strong> — not a one-time snapshot. Every field. Every change. Every comment. Tracked.</p>
-        </div>
+<div class="topbar">
+  <a class="tb-logo" href="#">
+    <div class="tb-logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
     </div>
-    <div class="feat-grid appear">
-        <div class="feat-col">
-            <div class="feat-item"><div class="feat-num">F-01</div><div class="feat-title">Real-time Webhook Sync</div><div class="feat-body">Jira fires a webhook. Notira processes it instantly. HMAC-SHA256 signature verification blocks fake requests.</div></div>
-            <div class="feat-item"><div class="feat-num">F-02</div><div class="feat-title">In-place Block Updates</div><div class="feat-body">Description changes patch the actual Notion block directly. Not a new page. The real content updates live.</div></div>
-            <div class="feat-item"><div class="feat-num">F-03</div><div class="feat-title">Live Stage Tracker</div><div class="feat-body">Backlog → In Progress → In Review → Done. Updates the moment you move a card in Jira.</div></div>
-        </div>
-        <div class="feat-col">
-            <div class="feat-item"><div class="feat-num">F-04</div><div class="feat-title">Collapsible Change History</div><div class="feat-body">Every field change logged with author and timestamp in collapsible Notion toggle blocks.</div></div>
-            <div class="feat-item"><div class="feat-num">F-05</div><div class="feat-title">Comment Sync</div><div class="feat-body">Jira comments append to the Notion page automatically with author name and timestamp.</div></div>
-            <div class="feat-item"><div class="feat-num">F-06</div><div class="feat-title">AI Summary</div><div class="feat-body">Auto-generated AI summary callout on every Notion page. Instant context without reading the full description.</div></div>
-        </div>
-        <div class="feat-col">
-            <div class="feat-item"><div class="feat-num">F-07</div><div class="feat-title">Redis Event Queue</div><div class="feat-body">Async queue with dead letter support. Events never lost. Failed syncs retry 3× with exponential backoff.</div></div>
-            <div class="feat-item"><div class="feat-num">F-08</div><div class="feat-title">One Command Deploy</div><div class="feat-body">Self-hosted via Docker Compose. Add API keys to .env, run docker compose up. Done.</div></div>
-            <div class="feat-item"><div class="feat-num">F-09</div><div class="feat-title">Your Data. Your Server.</div><div class="feat-body">Nothing leaves your infrastructure. Full audit log in your own PostgreSQL database. MIT licensed.</div></div>
-        </div>
+    <span>notira</span>
+  </a>
+  <div class="tb-right">
+    <div class="tb-hide-mobile">
+      <a class="tb-lifecycle" href="#">
+        <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
+        Jira ↔ Notion sync
+      </a>
     </div>
-</section>
-
-<section class="sw ruled" id="how">
-    <div class="col-label appear"><span class="col-num">§ 02</span> How It Works</div>
-    <div class="big-head appear">Five steps.<br>Fully automated.</div>
-    <div class="how-grid appear">
-        <div class="how-step"><div class="how-num">01</div><div class="how-title">Jira fires webhook</div><div class="how-body">Any ticket event triggers a POST request to your server</div></div>
-        <div class="how-step"><div class="how-num">02</div><div class="how-title">Signature verified</div><div class="how-body">HMAC-SHA256 confirms it's genuinely from Jira</div></div>
-        <div class="how-step"><div class="how-num">03</div><div class="how-title">Event queued</div><div class="how-body">Saved to PostgreSQL and pushed to Redis async queue</div></div>
-        <div class="how-step"><div class="how-num">04</div><div class="how-title">Notion updated</div><div class="how-body">Page created or blocks patched via Notion Blocks API</div></div>
-        <div class="how-step"><div class="how-num">05</div><div class="how-title">History logged</div><div class="how-body">Change logged with author and timestamp in toggle block</div></div>
+    <a class="tb-demo" href="https://github.com/ashutosh-2403/notira" target="_blank">↗ GitHub</a>
+    <div class="tb-hide-mobile">
+      <div class="tb-icon-btn">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div class="tb-icon-btn">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
     </div>
-</section>
+    <button class="hamburger" id="ham" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
 
-<section class="sw ruled" id="compare">
-    <div class="col-label appear"><span class="col-num">§ 03</span> Comparison</div>
-    <div class="big-head appear" style="margin-bottom:32px">"But Zapier<br>does this."<br><em style="font-style:italic;color:var(--accent)">Not even close.</em></div>
-    <div class="appear">
-        <div class="cmp-hdr">
-            <div class="cmp-ch">Feature</div><div class="cmp-ch ours">Notira</div><div class="cmp-ch">Zapier / Make</div><div class="cmp-ch">Manual</div>
-        </div>
-        <div class="cmp-row"><div class="cmp-cell feat">Creates Notion page</div><div class="cmp-cell ours"><span class="yes">✓</span></div><div class="cmp-cell"><span class="yes">✓</span></div><div class="cmp-cell"><span class="no">✗</span></div></div>
-        <div class="cmp-row"><div class="cmp-cell feat">Updates description in place</div><div class="cmp-cell ours"><span class="yes">✓</span></div><div class="cmp-cell"><span class="no">✗</span></div><div class="cmp-cell"><span class="no">✗</span></div></div>
-        <div class="cmp-row"><div class="cmp-cell feat">Live stage tracker</div><div class="cmp-cell ours"><span class="yes">✓</span></div><div class="cmp-cell"><span class="no">✗</span></div><div class="cmp-cell"><span class="no">✗</span></div></div>
-        <div class="cmp-row"><div class="cmp-cell feat">Collapsible change history</div><div class="cmp-cell ours"><span class="yes">✓</span></div><div class="cmp-cell"><span class="no">✗</span></div><div class="cmp-cell"><span class="no">✗</span></div></div>
-        <div class="cmp-row"><div class="cmp-cell feat">Comment sync</div><div class="cmp-cell ours"><span class="yes">✓</span></div><div class="cmp-cell"><span class="part">Partial</span></div><div class="cmp-cell"><span class="no">✗</span></div></div>
-        <div class="cmp-row"><div class="cmp-cell feat">Self-hosted</div><div class="cmp-cell ours"><span class="yes">✓</span></div><div class="cmp-cell"><span class="no">✗</span></div><div class="cmp-cell"><span class="no">✗</span></div></div>
-        <div class="cmp-row"><div class="cmp-cell feat">Cost</div><div class="cmp-cell ours"><span class="yes">Free</span></div><div class="cmp-cell"><span class="no">$50/month</span></div><div class="cmp-cell"><span class="yes">Free</span></div></div>
-        <div class="cmp-row"><div class="cmp-cell feat">Data on your server</div><div class="cmp-cell ours"><span class="yes">✓</span></div><div class="cmp-cell"><span class="no">✗</span></div><div class="cmp-cell"><span class="yes">✓</span></div></div>
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-nav">
+      <a class="sb-item active" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Live Sync
+        <span class="sb-badge live">LIVE</span>
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Notion Pages
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Change History
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Comments
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83"/></svg>
+        AI Summaries
+        <span class="sb-badge new">NEW</span>
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Webhooks
+      </a>
+      <a class="sb-item" href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Quick Start
+      </a>
+      <a class="sb-item" href="https://github.com/ashutosh-2403/notira" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        GitHub
+      </a>
     </div>
-</section>
+    <div class="sb-bottom">
+      <div class="sb-hint">
+        <p>Cannot locate something? Check the README on GitHub.</p>
+        <button class="sb-upgrade" onclick="window.open('https://github.com/ashutosh-2403/notira','_blank')">↗ View on GitHub</button>
+      </div>
+      <div class="sb-trial">You're on the <strong>free plan</strong></div>
+    </div>
+  </nav>
 
-<section class="sw ruled" id="quickstart">
-    <div class="col-label appear"><span class="col-num">§ 04</span> Quick Start</div>
-    <div class="big-head appear">Up in 60<br>seconds.</div>
-    <div class="qs-grid appear">
-        <div class="qs-left">
-            <div class="qs-title">Three commands.<br>You're live.</div>
-            <pre class="code-pre"><span class="c-cm"># 1. Clone</span>
-<span class="c-cmd">git clone github.com/ashutosh-2403/notira</span>
-<span class="c-cmd">cd notira</span>
+  <div class="main">
 
-<span class="c-cm"># 2. Configure</span>
-<span class="c-cmd">cp .env.example .env</span>
-<span class="c-cm"># edit .env with your keys</span>
-
-<span class="c-cm"># 3. Run</span>
-<span class="c-cmd">docker compose up -d</span>
-
-<span class="c-cm"># Register Jira webhook URL:</span>
-<span class="c-cm"># your-server/api/webhooks/jira</span>
-
-<span class="c-cmd"># Done. ✓</span></pre>
+    <div class="hero-banner">
+      <div class="hb-left">
+        <div class="hb-wave">👋</div>
+        <div class="hb-welcome">Welcome Ashutosh</div>
+        <div class="hb-title">Jira tracks it.<br>Notion owns it.</div>
+        <div class="hb-sub">Notira listens to every Jira event and syncs your tickets to Notion automatically — real-time, self-hosted, free forever.</div>
+        <div class="hb-progress">
+          <div class="hb-prog-label">0/4 steps completed</div>
+          <div class="hb-prog-bar"><div class="hb-prog-fill"></div></div>
         </div>
-        <div class="qs-right">
-            <div class="qs-title">Configure your .env</div>
-            <div class="env-rows">
-                <div class="env-row"><div class="env-key">JIRA_BASE_URL</div><div class="env-info">Your Atlassian workspace URL</div></div>
-                <div class="env-row"><div class="env-key">JIRA_EMAIL</div><div class="env-info">Your Atlassian account email</div></div>
-                <div class="env-row"><div class="env-key">JIRA_API_TOKEN</div><div class="env-info">API token from id.atlassian.com/security/api-tokens</div></div>
-                <div class="env-row"><div class="env-key">JIRA_WEBHOOK_SECRET</div><div class="env-info">Any random string for HMAC verification</div></div>
-                <div class="env-row"><div class="env-key">NOTION_API_TOKEN</div><div class="env-info">Integration token from notion.so/my-integrations</div></div>
-                <div class="env-row"><div class="env-key">NOTION_DATABASE_ID</div><div class="env-info">Your Notion database ID from the page URL</div></div>
+      </div>
+      <div class="hb-steps">
+        <div class="hb-step active">
+          <div class="hb-step-radio"></div>
+          <div class="hb-step-body">
+            <div class="hb-step-title">Connect Jira workspace</div>
+            <div class="hb-step-desc">Add your Atlassian API token and register the webhook</div>
+          </div>
+          <a class="hb-step-btn" href="https://github.com/ashutosh-2403/notira#quickstart" target="_blank">Start →</a>
+        </div>
+        <div class="hb-step">
+          <div class="hb-step-radio"></div>
+          <div class="hb-step-body">
+            <div class="hb-step-title">Connect Notion database</div>
+            <div class="hb-step-desc">Add integration token and database ID to .env</div>
+          </div>
+        </div>
+        <div class="hb-step">
+          <div class="hb-step-radio"></div>
+          <div class="hb-step-body">
+            <div class="hb-step-title">Run docker compose up</div>
+            <div class="hb-step-desc">One command and you're live</div>
+          </div>
+        </div>
+        <div class="hb-step">
+          <div class="hb-step-radio"></div>
+          <div class="hb-step-body">
+            <div class="hb-step-title">Enable AI summaries</div>
+            <div class="hb-step-desc">Auto-generated context on every Notion page</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="section-head">
+        <div class="section-title">your sync at a glance ✨</div>
+        <button class="report-btn">📊 Get sync report</button>
+      </div>
+      <div class="section-sub">Yesterday's highlights</div>
+
+      <div class="hl-tabs">
+        <button class="hl-tab active">Yesterday</button>
+        <button class="hl-tab">Today</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div><div class="stat-label orange">Events synced</div><div class="stat-val">24</div></div>
+          <div class="stat-icon">⚡</div>
+        </div>
+        <div class="stat-card">
+          <div><div class="stat-label pink">Notion pages</div><div class="stat-val">8</div></div>
+          <div class="stat-icon">📄</div>
+        </div>
+        <div class="stat-card">
+          <div><div class="stat-label blue">Comments</div><div class="stat-val">5</div></div>
+          <div class="stat-icon">💬</div>
+        </div>
+        <div class="stat-card">
+          <div><div class="stat-label teal">Uptime</div><div class="stat-val">100%</div></div>
+          <div class="stat-icon">✅</div>
+        </div>
+      </div>
+
+      <div class="promo-banner">
+        <div>
+          <div class="pb-date">Open source · MIT License · PDEU '26</div>
+          <div class="pb-title">Self-hosted. Your data. Your server.<br>Always free.</div>
+        </div>
+        <a class="pb-btn" href="https://github.com/ashutosh-2403/notira" target="_blank">↗ Star on GitHub</a>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hdr">
+            <div class="card-hdr-title">Recent synced tickets</div>
+            <div class="card-hdr-link">See all</div>
+          </div>
+          <div class="ticket">
+            <div class="t-key">SCRUM-30</div>
+            <div class="t-name">Implement JWT Authentication for User Login</div>
+            <div class="t-tags"><span class="tag tag-r">In Review</span><span class="tag tag-t">Task</span></div>
+          </div>
+          <div class="ticket">
+            <div class="t-key">SCRUM-28</div>
+            <div class="t-name">Setup Redis queue for async event processing</div>
+            <div class="t-tags"><span class="tag tag-p">In Progress</span><span class="tag tag-t">Task</span></div>
+          </div>
+          <div class="ticket">
+            <div class="t-key">SCRUM-25</div>
+            <div class="t-name">Fix BigDecimal precision bug in fintech calc</div>
+            <div class="t-tags"><span class="tag tag-d">Done</span><span class="tag tag-b">Bug</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-hdr">
+            <div class="card-hdr-title">Live sync log</div>
+            <div class="card-hdr-live"><div class="live-dot"></div>Live</div>
+          </div>
+          <div class="sync-row"><div class="s-dot live"></div><div class="s-key">SCRUM-30</div><div class="s-label">Status → In Review</div><div class="s-time">now</div></div>
+          <div class="sync-row"><div class="s-dot live"></div><div class="s-key">SCRUM-30</div><div class="s-label">Assignee updated</div><div class="s-time">2m</div></div>
+          <div class="sync-row"><div class="s-dot done"></div><div class="s-key">SCRUM-28</div><div class="s-label">Comment synced</div><div class="s-time">11m</div></div>
+          <div class="sync-row"><div class="s-dot done"></div><div class="s-key">SCRUM-25</div><div class="s-label">Status → Done</div><div class="s-time">1h</div></div>
+          <div class="sync-row"><div class="s-dot done"></div><div class="s-key">SCRUM-25</div><div class="s-label">Description updated in-place</div><div class="s-time">1h</div></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">Features</div></div>
+          <div class="feat-grid">
+            <div class="feat">
+              <div class="feat-ico"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+              <div><div class="feat-t">Real-time webhook</div><div class="feat-d">HMAC-SHA256 verified, processes instantly</div></div>
             </div>
+            <div class="feat">
+              <div class="feat-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg></div>
+              <div><div class="feat-t">In-place updates</div><div class="feat-d">Patches actual Notion block, not a new page</div></div>
+            </div>
+            <div class="feat">
+              <div class="feat-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div><div class="feat-t">Change history</div><div class="feat-d">Author + timestamp in toggle blocks</div></div>
+            </div>
+            <div class="feat">
+              <div class="feat-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4"/></svg></div>
+              <div><div class="feat-t">AI summaries<span class="new-pill">NEW</span></div><div class="feat-d">Auto callout on every Notion page</div></div>
+            </div>
+          </div>
         </div>
-    </div>
-</section>
 
-<section class="sw" id="tech">
-    <div class="col-label appear"><span class="col-num">§ 05</span> Tech Stack</div>
-    <div class="big-head appear">Built with<br>the right tools.</div>
-    <div class="tech-row appear">
-        <div class="tech-item">Java 21</div>
-        <div class="tech-item">Spring Boot 3.5</div>
-        <div class="tech-item">PostgreSQL</div>
-        <div class="tech-item">Redis</div>
-        <div class="tech-item">Flyway</div>
-        <div class="tech-item">OkHttp</div>
-        <div class="tech-item">Docker Compose</div>
-        <div class="tech-item">Notion Blocks API</div>
-        <div class="tech-item">Jira Webhooks</div>
-        <div class="tech-item">HMAC-SHA256</div>
-        <div class="tech-item">ngrok</div>
-        <div class="tech-item">Spring Retry</div>
-    </div>
-</section>
+        <div class="card">
+          <div class="card-hdr"><div class="card-hdr-title">Quick start</div></div>
+          <div class="steps-col">
+            <div class="step"><div class="s-num">1</div><div class="s-body"><div class="s-title">Clone the repo</div><div class="s-code">git clone .../ashutosh-2403/notira</div></div></div>
+            <div class="step"><div class="s-num">2</div><div class="s-body"><div class="s-title">Add your API keys</div><div class="s-code">cp .env.example .env</div></div></div>
+            <div class="step"><div class="s-num">3</div><div class="s-body"><div class="s-title">Run with Docker</div><div class="s-code">docker compose up -d</div></div></div>
+            <div class="step"><div class="s-num">4</div><div class="s-body"><div class="s-title">Register Jira webhook</div><div class="s-sub">your-server/api/webhooks/jira</div></div></div>
+            <div class="step"><div class="s-num done">✓</div><div class="s-body"><div class="s-title" style="color:#166534">Done — Notira handles the rest</div></div></div>
+          </div>
+        </div>
+      </div>
 
-<footer>
-    <div class="ft-grid">
-        <div>
-            <div class="ft-logo">Noti<span>ra</span></div>
-            <div class="ft-desc">Real-time Jira to Notion sync engine. Open source, self-hosted, free forever. Built by a developer who got tired of copy-pasting.</div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-hdr"><div class="card-hdr-title">How Notira compares</div></div>
+        <div class="cmp-grid">
+          <div class="cmp-card winner">
+            <div class="cmp-name">Notira <span class="cmp-crown">recommended</span></div>
+            <div class="cmp-row"><div class="cmp-k">In-place updates</div><div class="cmp-v y">Yes</div></div>
+            <div class="cmp-row"><div class="cmp-k">Change history</div><div class="cmp-v y">Yes</div></div>
+            <div class="cmp-row"><div class="cmp-k">Self-hosted</div><div class="cmp-v y">Yes</div></div>
+            <div class="cmp-row"><div class="cmp-k">Cost</div><div class="cmp-v fr">Free</div></div>
+          </div>
+          <div class="cmp-card">
+            <div class="cmp-name">Zapier / Make</div>
+            <div class="cmp-row"><div class="cmp-k">In-place updates</div><div class="cmp-v n">No</div></div>
+            <div class="cmp-row"><div class="cmp-k">Change history</div><div class="cmp-v n">No</div></div>
+            <div class="cmp-row"><div class="cmp-k">Self-hosted</div><div class="cmp-v n">No</div></div>
+            <div class="cmp-row"><div class="cmp-k">Cost</div><div class="cmp-v pd">$50/mo</div></div>
+          </div>
+          <div class="cmp-card">
+            <div class="cmp-name">Manual</div>
+            <div class="cmp-row"><div class="cmp-k">In-place updates</div><div class="cmp-v n">No</div></div>
+            <div class="cmp-row"><div class="cmp-k">Change history</div><div class="cmp-v n">No</div></div>
+            <div class="cmp-row"><div class="cmp-k">Self-hosted</div><div class="cmp-v y">Yes</div></div>
+            <div class="cmp-row"><div class="cmp-k">Cost</div><div class="cmp-v fr">Free</div></div>
+          </div>
         </div>
-        <div>
-            <div class="ft-col-title">Links</div>
-            <ul class="ft-links">
-                <li><a href="https://github.com/ashutosh-2403/notira" target="_blank">GitHub Repository</a></li>
-                <li><a href="https://github.com/ashutosh-2403/notira/blob/main/README.md" target="_blank">Documentation</a></li>
-                <li><a href="https://github.com/ashutosh-2403/notira/issues" target="_blank">Report an Issue</a></li>
-                <li><a href="https://linkedin.com/in/ashutoshmishra2403" target="_blank">LinkedIn</a></li>
-            </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr"><div class="card-hdr-title">Tech stack</div></div>
+        <div class="stack-chips">
+          <span class="chip">Java 21</span>
+          <span class="chip">Spring Boot 3.5</span>
+          <span class="chip">PostgreSQL</span>
+          <span class="chip">Redis</span>
+          <span class="chip">Docker Compose</span>
+          <span class="chip">Notion Blocks API</span>
+          <span class="chip">Jira Webhooks</span>
+          <span class="chip">HMAC-SHA256</span>
+          <span class="chip">Flyway</span>
+          <span class="chip">Spring Retry</span>
         </div>
-        <div>
-            <div class="ft-col-title">Built with</div>
-            <ul class="ft-links">
-                <li><a href="#">Java 21 · Spring Boot 3.5</a></li>
-                <li><a href="#">PostgreSQL · Redis · Flyway</a></li>
-                <li><a href="#">Notion Blocks API</a></li>
-                <li><a href="#">Docker Compose</a></li>
-            </ul>
-        </div>
+      </div>
+
     </div>
-    <div class="ft-bottom">
-        <span>© 2026 Ashutosh Mishra · MIT License · PDEU '26</span>
-        <span>Open Source · Self-Hosted · Free Forever</span>
+
+    <div class="footer">
+      <p>Built by <a href="https://linkedin.com/in/ashutoshmishra2403" target="_blank">Ashutosh Mishra</a> · PDEU '26 &nbsp;·&nbsp; <a href="https://github.com/ashutosh-2403/notira" target="_blank">GitHub</a> &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Open Source · Self-Hosted · Free Forever</p>
     </div>
-</footer>
+
+  </div>
+</div>
 
 <script>
-    const d = new Date();
-    document.getElementById('ld').textContent = d.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-    const obs = new IntersectionObserver((entries)=>{
-      entries.forEach((e,i)=>{
-        if(e.isIntersecting){setTimeout(()=>e.target.classList.add('in'),i*100);obs.unobserve(e.target)}
-      });
-    },{threshold:.08});
-    document.querySelectorAll('.appear').forEach(el=>obs.observe(el));
+const ham = document.getElementById('ham');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+function toggleSidebar(){
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+ham.addEventListener('click', toggleSidebar);
+overlay.addEventListener('click', toggleSidebar);
+document.querySelectorAll('.sb-item').forEach(item => {
+  item.addEventListener('click', () => {
+    if(window.innerWidth <= 900) toggleSidebar();
+  });
+});
+document.querySelectorAll('.hl-tab').forEach(tab => {
+  tab.addEventListener('click', function(){
+    document.querySelectorAll('.hl-tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
 </script>
+
 </body>
 </html>
